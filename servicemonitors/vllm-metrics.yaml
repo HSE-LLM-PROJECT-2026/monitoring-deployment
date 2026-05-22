@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vllm-metrics
+  namespace: hse-llm-project
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - hse-llm-project
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vllm-server
+      llm.platform/component: inference
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

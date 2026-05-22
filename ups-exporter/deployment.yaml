@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nut-ups-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: nut-ups-exporter
+    app.kubernetes.io/instance: nut-ups-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nut-ups-exporter
+      app.kubernetes.io/instance: nut-ups-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nut-ups-exporter
+        app.kubernetes.io/instance: nut-ups-exporter
+    spec:
+      containers:
+        - name: exporter
+          image: docker.io/druggeri/nut_exporter:3.2.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9199
+              name: http
+          envFrom:
+            - secretRef:
+                name: nut-ups-exporter-config
+          env:
+            - name: NUT_EXPORTER_VARIABLES
+              value: battery.charge,battery.runtime,battery.voltage,battery.voltage.nominal,input.voltage,input.frequency,ups.load,ups.temperature,ups.status
+          livenessProbe:
+            httpGet:
+              path: /ups_metrics
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /ups_metrics
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

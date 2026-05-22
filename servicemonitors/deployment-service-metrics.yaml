@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: deployment-service-metrics
+  namespace: hse-llm-project
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - hse-llm-project
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: deployment-service
+      app.kubernetes.io/instance: deployment-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

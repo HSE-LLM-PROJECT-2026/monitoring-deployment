@@ -1,0 +1,93 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: ups-email-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  route:
+    receiver: resend-ups-email
+    groupBy: ["alertname", "namespace", "service", "instance"]
+    groupWait: 0s
+    groupInterval: 1s
+    repeatInterval: 15m
+    matchers:
+      - name: alertname
+        matchType: =~
+        value: "UPS.*"
+      - name: severity
+        matchType: =~
+        value: "warning|critical"
+  receivers:
+    - name: resend-ups-email
+      emailConfigs:
+        - to: awesomecosmonaut@gmail.com
+          from: "LLMOps Flow Alerts <alerts@hse-llm-project-2026.ru>"
+          smarthost: smtp.resend.com:587
+          authUsername: resend
+          authPassword:
+            name: resend-smtp-password
+            key: password
+          requireTLS: true
+          sendResolved: true
+          headers:
+            - key: Subject
+              value: "{{ if eq .Status \"resolved\" }}Power restored{{ else }}UPS alert{{ end }}: {{ .CommonAnnotations.summary }}"
+          text: |
+            [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
+
+            Severity: {{ .CommonLabels.severity }}
+            Namespace: {{ .CommonLabels.namespace }}
+            Summary: {{ .CommonAnnotations.summary }}
+            Description: {{ .CommonAnnotations.description }}
+            Starts: {{ (index .Alerts 0).StartsAt }}
+            Grafana: {{ if .CommonLabels.instance }}https://grafana.hse-llm-project-2026.ru/d/ups-monitoring/ups-monitoring?orgId=1&var-instance={{ .CommonLabels.instance | urlquery }}{{ else }}{{ .CommonAnnotations.grafana_url }}{{ end }}
+            Source: {{ (index .Alerts 0).GeneratorURL }}
+          html: |
+            <div style="margin:0;padding:0;background:#f8fafc;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#0f172a;">
+              <div style="max-width:720px;margin:0 auto;padding:28px 18px;">
+                <div style="margin-bottom:14px;padding:0 2px;color:#4f46e5;font-size:19px;font-weight:800;letter-spacing:-0.01em;">
+                  HSE LLM platform
+                </div>
+
+                <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,0.06);">
+                  <div style="padding:22px 24px;border-bottom:1px solid #e5e7eb;background:#ffffff;">
+                    <div style="display:inline-block;padding:5px 10px;border-radius:999px;background:{{ if eq .Status "resolved" }}#ecfdf5{{ else if eq .CommonLabels.severity "critical" }}#fef2f2{{ else }}#fffbeb{{ end }};color:{{ if eq .Status "resolved" }}#059669{{ else if eq .CommonLabels.severity "critical" }}#dc2626{{ else }}#d97706{{ end }};font-size:12px;font-weight:700;">
+                      {{ if eq .Status "resolved" }}Resolved{{ else }}{{ .CommonLabels.severity }}{{ end }}
+                    </div>
+                    <h1 style="margin:14px 0 0;font-size:24px;line-height:1.25;font-weight:800;color:#111827;letter-spacing:-0.01em;">
+                      {{ .CommonAnnotations.summary }}
+                    </h1>
+                    <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#64748b;">
+                      {{ .CommonAnnotations.description }}
+                    </p>
+                  </div>
+
+                  <div style="padding:22px 24px;">
+                    <div style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;">
+                      <div style="font-size:12px;color:#64748b;font-weight:600;">Alert</div>
+                      <div style="margin-top:6px;font-size:16px;color:#111827;font-weight:800;">{{ .CommonLabels.alertname }}</div>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                      <a href="{{ if .CommonLabels.instance }}https://grafana.hse-llm-project-2026.ru/d/ups-monitoring/ups-monitoring?orgId=1&var-instance={{ .CommonLabels.instance | urlquery }}{{ else }}{{ .CommonAnnotations.grafana_url }}{{ end }}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;border-radius:8px;padding:11px 16px;">
+                        Open UPS Dashboard
+                      </a>
+                    </div>
+
+                    <div style="margin-top:22px;padding-top:18px;border-top:1px solid #e5e7eb;">
+                      <div style="font-size:13px;line-height:1.75;color:#64748b;">
+                        <div><b>Namespace:</b> {{ .CommonLabels.namespace }}</div>
+                        <div><b>Started:</b> {{ (index .Alerts 0).StartsAt }}</div>
+                        <div><b>Grafana:</b> <a style="color:#4f46e5;" href="{{ if .CommonLabels.instance }}https://grafana.hse-llm-project-2026.ru/d/ups-monitoring/ups-monitoring?orgId=1&var-instance={{ .CommonLabels.instance | urlquery }}{{ else }}{{ .CommonAnnotations.grafana_url }}{{ end }}">{{ if .CommonLabels.instance }}https://grafana.hse-llm-project-2026.ru/d/ups-monitoring/ups-monitoring?orgId=1&var-instance={{ .CommonLabels.instance | urlquery }}{{ else }}{{ .CommonAnnotations.grafana_url }}{{ end }}</a></div>
+                        <div><b>Source:</b> <a style="color:#4f46e5;" href="{{ (index .Alerts 0).GeneratorURL }}">Prometheus alert source</a></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:14px 4px 0;font-size:12px;color:#94a3b8;text-align:center;">
+                  LLMOps Flow monitoring · UPS notifications
+                </div>
+              </div>
+            </div>

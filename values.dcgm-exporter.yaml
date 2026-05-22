@@ -1,0 +1,16 @@
+runtimeClassName: nvidia
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  additionalLabels:
+    release: kube-prometheus-stack
+
+# GPU pinning is generated dynamically in deploy/apply scripts.
+nodeSelector: {}
+affinity: {}
+
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule

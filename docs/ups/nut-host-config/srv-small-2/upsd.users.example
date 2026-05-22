@@ -1,0 +1,5 @@
+[exporter]
+  password = <set-via-secret-or-local-file>
+  upsmon secondary
+  actions = SET
+  instcmds = ALL

@@ -1,0 +1,78 @@
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: admin
+  env:
+    GF_SERVER_ROOT_URL: https://grafana.hse-llm-project-2026.ru
+    GF_SERVER_DOMAIN: grafana.hse-llm-project-2026.ru
+    GF_SERVER_ENFORCE_DOMAIN: "false"
+    GF_SECURITY_CSRF_TRUSTED_ORIGINS: https://grafana.hse-llm-project-2026.ru,https://grafana.hse-llm.internal,https://frontend.hse-llm-project-2026.ru
+  grafana.ini:
+    server:
+      root_url: https://grafana.hse-llm-project-2026.ru
+      domain: grafana.hse-llm-project-2026.ru
+      enforce_domain: false
+    security:
+      csrf_trusted_origins: https://grafana.hse-llm-project-2026.ru,https://grafana.hse-llm.internal,https://frontend.hse-llm-project-2026.ru
+  service:
+    type: NodePort
+    nodePort: 30300
+    port: 80
+    targetPort: 3000
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      access: proxy
+      url: http://loki.monitoring.svc.cluster.local:3100
+      isDefault: false
+      editable: true
+      jsonData: {}
+    - name: Prometheus (Platform)
+      uid: prometheus-platform
+      type: prometheus
+      access: proxy
+      url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+      isDefault: false
+      editable: true
+      jsonData:
+        timeInterval: 15s
+    - name: Alertmanager
+      uid: alertmanager
+      type: alertmanager
+      access: proxy
+      url: http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093
+      isDefault: false
+      editable: true
+      jsonData:
+        implementation: prometheus
+    - name: PostgreSQL (audit)
+      uid: postgres-audit
+      type: postgres
+      access: proxy
+      url: postgresql.hse-llm-project.svc.cluster.local:5432
+      user: admin
+      isDefault: false
+      editable: true
+      jsonData:
+        database: default
+        sslmode: disable
+        postgresVersion: 1500
+        timescaledb: false
+      secureJsonData:
+        password: admin
+
+prometheus-node-exporter:
+  extraArgs:
+    - --collector.rapl
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 7d
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    podMonitorNamespaceSelector: {}
+    probeNamespaceSelector: {}

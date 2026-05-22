@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tuya-smart-plug-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: tuya-smart-plug-exporter
+    app.kubernetes.io/instance: tuya-smart-plug-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tuya-smart-plug-exporter
+      app.kubernetes.io/instance: tuya-smart-plug-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tuya-smart-plug-exporter
+        app.kubernetes.io/instance: tuya-smart-plug-exporter
+    spec:
+      containers:
+        - name: exporter
+          image: ghcr.io/luizbizzio/tuya-smart-plug-exporter:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9122
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+      volumes:
+        - name: config
+          secret:
+            secretName: tuya-smart-plug-exporter-config

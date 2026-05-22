@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: status-backend-service-health
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: availability-probe
+    app.kubernetes.io/part-of: hse-llm-project
+    release: kube-prometheus-stack
+spec:
+  interval: 30s
+  module: http_2xx
+  prober:
+    path: /probe
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      labels:
+        service_id: status-backend-service
+      static:
+        - http://status-backend-service.hse-llm-project.svc.cluster.local:8000/health

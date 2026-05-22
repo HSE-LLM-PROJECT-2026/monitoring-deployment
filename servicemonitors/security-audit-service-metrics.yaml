@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: security-audit-service-metrics
+  namespace: hse-llm-project
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - hse-llm-project
+  selector:
+    matchLabels:
+      app: security-audit-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

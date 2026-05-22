@@ -1,0 +1,10 @@
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  labels:
+    release: kube-prometheus-stack
+
+config:
+  datasourceSecret:
+    name: postgres-exporter-dsn
+    key: DATA_SOURCE_NAME

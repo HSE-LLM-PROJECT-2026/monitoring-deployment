@@ -1,0 +1,17 @@
+fullnameOverride: blackbox-exporter
+
+releaseLabel: true
+
+serviceMonitor:
+  enabled: true
+  selfMonitor:
+    enabled: true
+
+config:
+  modules:
+    http_2xx:
+      prober: http
+      timeout: 5s
+      http:
+        method: GET
+        preferred_ip_protocol: ip4

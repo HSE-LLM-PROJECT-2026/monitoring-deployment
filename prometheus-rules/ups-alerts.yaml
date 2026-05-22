@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ups-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: ups-alerts
+      interval: 1s
+      rules:
+        - alert: UPSExporterDown
+          expr: up{service="nut-ups-exporter", namespace="monitoring"} == 0
+          for: 0s
+          labels:
+            severity: warning
+          annotations:
+            summary: "UPS exporter is down"
+            description: "Prometheus cannot scrape nut-ups-exporter for more than 2 minutes."
+            grafana_url: "https://grafana.hse-llm-project-2026.ru/d/ups-monitoring/ups-monitoring?orgId=1&var-instance={{ $labels.instance }}"
+
+        - alert: UPSOnBattery
+          expr: network_ups_tools_ups_status{flag="OB"} == 1
+          labels:
+            severity: critical
+          annotations:
+            summary: "Power outage detected"
+            description: "External power is unavailable. UPS {{ $labels.ups }} switched to battery."
+            grafana_url: "https://grafana.hse-llm-project-2026.ru/d/ups-monitoring/ups-monitoring?orgId=1&var-instance={{ $labels.instance }}"
+
+        - alert: UPSLowBatteryCharge
+          expr: network_ups_tools_battery_charge < 35
+          for: 0s
+          labels:
+            severity: critical
+          annotations:
+            summary: "UPS battery charge is low"
+            description: "UPS {{ $labels.ups }} battery charge is {{ $value }}%, below 35%."
+            grafana_url: "https://grafana.hse-llm-project-2026.ru/d/ups-monitoring/ups-monitoring?orgId=1&var-instance={{ $labels.instance }}"
