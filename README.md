@@ -1,7 +1,5 @@
 # Monitoring Deployment
 
-[HSE-LLM-PROJECT-2026/monitoring-deployment](https://github.com/HSE-LLM-PROJECT-2026/monitoring-deployment)
-
 ## Описание
 
 Репозиторий мониторинга платформы. В нем лежит раскатка Prometheus/Grafana/Loki/Alertmanager, ServiceMonitor-ы, Grafana dashboards, Tuya power exporter и UPS monitoring.
